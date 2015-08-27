@@ -25,7 +25,13 @@
 			return this[method].apply(this, arguments);
 		};
 	}
-
+	/* 支援民國年, Micky, 2015.08.27 */
+	var pad = function (val, len) {
+        val = String(val);
+        len = len || 2;
+        while (val.length < len) val = "0" + val;
+        return val;
+    };
 	var DateArray = (function(){
 		var extras = {
 			get: function(i){
@@ -677,9 +683,9 @@
 			}
 			this.picker.addClass('datepicker-orient-' + yorient);
 			if (yorient === 'top')
-				top += height;
-			else
 				top -= calendarHeight + parseInt(this.picker.css('padding-top'));
+			else
+				top += height;
 
 			if (this.o.rtl) {
 				var right = windowWidth - (left + width);
@@ -853,8 +859,29 @@
 				tooltip;
 			if (isNaN(year) || isNaN(month))
 				return;
+			
+			/* 支援民國年, Micky, 2015.08.27 */
+			/* var titleFormat = "";  // v1.5 */
+			var formatParts = DPGlobal.parseFormat(this.o.format).parts;
+			var findTaiwanYear = $.inArray('yyy', formatParts) != -1 ? true : false;
+			var taiwanYear = year;
+			/* var textDate = new Date(year, month); // v1.5 */
+			if (findTaiwanYear) {
+				/* titleFormat = "yyyy MM"; // v1.5 */
+				taiwanYear = year - 1911;
+				if (taiwanYearMode && !taiwanYearModeChanged) {	// 如�?user?��??�修?�input中�?資�?，�??�要�?一次更??
+					taiwanYear = parseInt(originTaiwanYear);
+					taiwanYearModeChanged = true;
+				}
+				/*textDate = new Date(taiwanYear, month);
+				textDate.setFullYear(taiwanYear); // v1.5 */
+			} else {
+				/* titleFormat = "MM yyyy"; // v1.5 */
+			}
+			
 			this.picker.find('.datepicker-days thead .datepicker-switch')
-						.text(dates[this.o.language].months[month]+' '+year);
+						/*.text(DPGlobal.formatDate(textDate, titleFormat, this.o.language));*/
+						.text(dates[this.o.language].months[month]+' '+taiwanYear);
 			this.picker.find('tfoot .today')
 						.text(todaytxt)
 						.toggle(this.o.todayBtn !== false);
@@ -920,11 +947,17 @@
 			}
 			this.picker.find('.datepicker-days tbody').empty().append(html.join(''));
 
+			/* 支援民國年, Micky, 2015.08.27 */
+			var yearInMonthPicker = year;
+			if (findTaiwanYear) {
+				yearInMonthPicker = year - 1911;
+			}
+			
 			var months = this.picker.find('.datepicker-months')
-						.find('th:eq(1)')
-							.text(year)
+							.find('th:eq(1)')
+							.text(yearInMonthPicker)
 							.end()
-						.find('span').removeClass('active');
+							.find('span').removeClass('active');
 
 			$.each(this.dates, function(i, d){
 				if (d.getUTCFullYear() === year)
@@ -955,10 +988,17 @@
 
 			html = '';
 			year = parseInt(year/10, 10) * 10;
+			
+			/* 支援民國年, Micky, 2015.08.27 */
+			var yearInYearPicker = year;
+			if (findTaiwanYear) {
+				yearInYearPicker = year - 1911;
+			}
+			
 			var yearCont = this.picker.find('.datepicker-years')
 								.find('th:eq(1)')
-									.text(year + '-' + (year + 9))
-									.end()
+								.text(yearInYearPicker + '-' + (yearInYearPicker + 9))
+								.end()
 								.find('td');
 			year -= 1;
 			var years = $.map(this.dates, function(d){
@@ -975,7 +1015,13 @@
 					classes.push('active');
 				if (year < startYear || year > endYear)
 					classes.push('disabled');
-				html += '<span class="' + classes.join(' ') + '">' + year + '</span>';
+				
+				/* 支援民國年, Micky, 2015.08.27 */
+				var yearInYearPicker = year;
+				if (findTaiwanYear) {
+					yearInYearPicker = year - 1911;
+				}
+				html += '<span class="' + classes.join(' ') + '">' + yearInYearPicker + '</span>';
 				year += 1;
 			}
 			yearCont.html(html);
@@ -1081,7 +1127,11 @@
 							else {
 								day = 1;
 								month = 0;
-								year = parseInt(target.text(), 10)||0;
+								
+								var formatParts = DPGlobal.parseFormat(this.o.format).parts;
+								var findTaiwanYear = $.inArray('yyy', formatParts) != -1 ? true : false;
+								/* 支援民國年, Micky, 2015.08.27 */
+								year = (parseInt(target.text(), 10) + (findTaiwanYear ? 1911 : 0))||0;
 								this.viewDate.setUTCFullYear(year);
 								this._trigger('changeYear', this.viewDate);
 								if (this.o.minViewMode === 2){
@@ -1410,8 +1460,13 @@
 				return;
 			this.updating = true;
 
-			var dp = $(e.target).data('datepicker'),
-				new_date = dp.getUTCDate(),
+			var dp = $(e.target).data('datepicker');
+
+			if (typeof(dp) === "undefined") {
+				return;
+			}
+
+			var new_date = dp.getUTCDate(),
 				i = $.inArray(e.target, this.inputs),
 				j = i - 1,
 				k = i + 1,
@@ -1567,6 +1622,10 @@
 		}
 	};
 
+	var taiwanYearMode = false;
+	var taiwanYearModeChanged = true;
+	var originTaiwanYear = -1;
+
 	var DPGlobal = {
 		modes: [
 			{
@@ -1590,7 +1649,7 @@
 		getDaysInMonth: function(year, month){
 			return [31, (DPGlobal.isLeapYear(year) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month];
 		},
-		validParts: /dd?|DD?|mm?|MM?|yy(?:yy)?/g,
+		validParts: /dd?|DD?|mm?|MM?|y{2,4}/g,
 		nonpunctuation: /[^ -\/:-@\[\u3400-\u9fff-`{-~\t\n\r]+/g,
 		parseFormat: function(format){
 			// IE treats \0 as a string end in inputs (truncating the value),
@@ -1614,6 +1673,7 @@
 				part, dir, i;
 			if (/^[\-+]\d+[dmwy]([\s,]+[\-+]\d+[dmwy])*$/.test(date)){
 				date = new Date();
+
 				for (i=0; i < parts.length; i++){
 					part = part_re.exec(parts[i]);
 					dir = parseInt(part[1]);
@@ -1637,11 +1697,15 @@
 			parts = date && date.match(this.nonpunctuation) || [];
 			date = new Date();
 			var parsed = {},
-				setters_order = ['yyyy', 'yy', 'M', 'MM', 'm', 'mm', 'd', 'dd'],
+				setters_order = ['yyyy', 'yyy', 'yy', 'M', 'MM', 'm', 'mm', 'd', 'dd'],
 				setters_map = {
 					yyyy: function(d,v){
 						return d.setUTCFullYear(v);
 					},
+					/* 支援民國年, Micky, 2015.08.27 */
+					yyy: function (d, v) {
+                        return d.setUTCFullYear(v + 1911);
+                    },
 					yy: function(d,v){
 						return d.setUTCFullYear(2000+v);
 					},
@@ -1682,6 +1746,13 @@
 				for (i=0, cnt = fparts.length; i < cnt; i++){
 					val = parseInt(parts[i], 10);
 					part = fparts[i];
+					if (fparts[i] == 'yyy') {
+						taiwanYearMode = true;
+						taiwanYearModeChanged = false;
+						originTaiwanYear = parts[i];
+						console.log('taiwanYearMode = true');
+						console.log('taiwan Year = ' + originTaiwanYear);
+					}
 					if (isNaN(val)){
 						switch (part){
 							case 'MM':
@@ -1722,6 +1793,8 @@
 				M: dates[language].monthsShort[date.getUTCMonth()],
 				MM: dates[language].months[date.getUTCMonth()],
 				yy: date.getUTCFullYear().toString().substring(2),
+				/* 支援民國年, Micky, 2015.08.27 */
+				yyy: pad(date.getUTCFullYear() - 1911, 3),
 				yyyy: date.getUTCFullYear()
 			};
 			val.dd = (val.d < 10 ? '0' : '') + val.d;
@@ -1736,7 +1809,7 @@
 			return date.join('');
 		},
 		headTemplate: '<thead>'+
-							'<tr>'+
+			              '<tr>'+
 								'<th class="prev">&#171;</th>'+
 								'<th colspan="5" class="datepicker-switch"></th>'+
 								'<th class="next">&#187;</th>'+
