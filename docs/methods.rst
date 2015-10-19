@@ -1,7 +1,9 @@
 Methods
 =======
 
-Methods are called on a datepicker by call the ``datepicker`` function with a string first argument, followed by any arguments the method takes::
+Methods are called on a datepicker by call the ``datepicker`` function with a string first argument, followed by any arguments the method takes
+
+::
 
     $('.datepicker').datepicker('method', arg1, arg2);
 
@@ -52,6 +54,7 @@ To reset the datepicker and clear the selected date, pass an empty string with `
 ::
 
     $('.datepicker').datepicker('update', '');
+
 
 setDate
 -------
@@ -187,3 +190,15 @@ Arguments:
 Sets the days of week that should be disabled.  See :ref:`daysofweekdisabled` for valid values.
 
 Omit daysOfWeekDisabled (or provide an otherwise falsey value) to unset the disabled days.
+
+
+setDaysOfWeekHighlighted
+------------------------
+
+Arguments:
+
+* daysOfWeekHighlighted (String|Array)
+
+Sets the days of week that should be highlighted.  See :ref:`daysOfWeekHighlighted` for valid values.
+
+Omit daysOfWeekHighlighted (or provide an otherwise falsey value) to unset the disabled days.

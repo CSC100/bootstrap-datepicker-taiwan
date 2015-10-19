@@ -14,6 +14,7 @@ module.exports = function(grunt){
             ' *',
             ' * Copyright 2012 Stefan Petre',
             ' * Improvements by Andrew Rowls',
+            ' * Added Taiwan Year by Micky Li',
             ' * Licensed under the Apache License v2.0 (http://www.apache.org/licenses/LICENSE-2.0)',
             ' */'
         ].join('\n'),
@@ -166,8 +167,8 @@ module.exports = function(grunt){
                 }],
                 options: {
                     replacements: [{
-                        pattern: '$.fn.datepicker.version =  "1.4.0";',
-                        replacement: '$.fn.datepicker.version =  "' + grunt.option('newver') + '";'
+                        pattern: /\$(\.fn\.datepicker\.version)\s=\s*("|\')[0-9\.a-z].*("|');/gi,
+                        replacement: "$.fn.datepicker.version = '" + grunt.option('newver') + "';"
                     }]
                 }
             },
@@ -178,7 +179,7 @@ module.exports = function(grunt){
                 }],
                 options: {
                     replacements: [{
-                        pattern: '"version": "1.4.0",',
+                        pattern: /\"version\":\s\"[0-9\.a-z].*",/gi,
                         replacement: '"version": "' + grunt.option('newver') + '",'
                     }]
                 }
@@ -190,7 +191,7 @@ module.exports = function(grunt){
                 }],
                 options: {
                     replacements: [{
-                        pattern: '"version": "1.4.0",',
+                        pattern: /\"version\":\s\"[0-9\.a-z].*",/gi,
                         replacement: '"version": "' + grunt.option('newver') + '",'
                     }]
                 }

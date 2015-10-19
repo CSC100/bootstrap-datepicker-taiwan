@@ -19,7 +19,7 @@
 			display: inline-block;
 			border-left:   7px solid transparent;
 			border-right:  7px solid transparent;
-			border-bottom: 7px solid #ccc;
+			border-bottom: 7px solid @grayLight;
 			border-top:    0;
 			border-bottom-color: rgba(0,0,0,.2);
 			position: absolute;
@@ -37,12 +37,12 @@
 		&.datepicker-orient-left:after    { left: 7px; }
 		&.datepicker-orient-right:before  { right: 6px; }
 		&.datepicker-orient-right:after   { right: 7px; }
-		&.datepicker-orient-bottom:before    { top: -7px; }
-		&.datepicker-orient-bottom:after     { top: -6px; }
+		&.datepicker-orient-bottom:before { top: -7px; }
+		&.datepicker-orient-bottom:after  { top: -6px; }
 		&.datepicker-orient-top:before {
 			bottom: -7px;
 			border-bottom: 0;
-			border-top:    7px solid #999;
+			border-top:    7px solid @grayLight;
 		}
 		&.datepicker-orient-top:after {
 			bottom: -6px;
@@ -52,11 +52,6 @@
 	}
 	> div {
 		display: none;
-	}
-	&.days .datepicker-days,
-	&.months .datepicker-months,
-	&.years .datepicker-years {
-		display: block;
 	}
 	table {
 		margin: 0;
@@ -185,7 +180,9 @@
 		width: 145px;
 	}
 
-	thead tr:first-child th,
+	.datepicker-switch,
+	.prev,
+	.next,
 	tfoot tr th {
 		cursor: pointer;
 		&:hover {
@@ -199,10 +196,6 @@
 		width: 12px;
 		padding: 0 2px 0 5px;
 		vertical-align: middle;
-	}
-	thead tr:first-child .cw {
-		cursor: default;
-		background-color: transparent;
 	}
 }
 .input-append,
